@@ -34,6 +34,11 @@ impl EventHandler for Handler {
                 println!("Error sending message: {:?}", why);
             }
         }
+
+
+        if let Err(why) = conexao_com_sqlite::inserir_mensagem(&msg.author.name, &msg.content) {
+            println!("Error sending message: {:?}", why);
+        }
     }
 
     async fn guild_member_addition(&self, ctx: Context, new_member: Member) {
@@ -43,6 +48,7 @@ impl EventHandler for Handler {
             println!("Error sending message: {:?}", why);
         };
     }
+
     // Set a handler to be called on the `ready` event. This is called when a
     // shard is booted, and a READY payload is sent by Discord. This payload
     // contains data like the current user's guild Ids, current user data,
@@ -56,6 +62,8 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
+    // Create the database
+    conexao_com_sqlite::criar_banco_de_dados().unwrap();
     // Configure the client with your Discord bot token in the environment.
     let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
     // Set gateway intents, which decides what events the bot will be notified about
@@ -78,3 +86,34 @@ async fn main() {
     }
 }
 
+pub mod conexao_com_sqlite {
+    use rusqlite::{params, Connection, Result};
+    use std::fs;
+
+    pub fn criar_banco_de_dados() -> Result<()> {
+        let _ = fs::remove_file("banco_de_dados.db");
+        let conn = Connection::open("banco_de_dados.db")?;
+
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS mensagens (
+                id INTEGER PRIMARY KEY,
+                author TEXT NOT NULL,
+                texto TEXT NOT NULL
+            )",
+            params![],
+        )?;
+
+        Ok(())
+    }
+
+    pub fn inserir_mensagem(author: &str, texto: &str) -> Result<()> {
+        let conn = Connection::open("banco_de_dados.db")?;
+
+        conn.execute(
+            "INSERT INTO mensagens (author, texto) VALUES (?1, ?2)",
+            params![author, texto],
+        )?;
+
+        Ok(())
+    }
+}
