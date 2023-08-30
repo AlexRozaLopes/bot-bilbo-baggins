@@ -5,8 +5,23 @@ use serenity::model::channel::Message;
 use serenity::model::gateway::Ready;
 use serenity::model::prelude::Member;
 use serenity::prelude::*;
+use serenity::framework::standard::macros::{command, group};
+use serenity::framework::standard::{CommandResult, StandardFramework};
 
 struct Handler;
+
+#[command]
+async fn about(ctx: &Context, msg: &Message) -> CommandResult {
+    msg.channel_id.say(&ctx.http, "Esse bot foi criado por um lufano! (lufa-lufa >>> melhor casa de hogwarts :P)").await?;
+
+    Ok(())
+}
+
+#[group]
+#[commands(about)]
+struct General;
+
+
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -62,6 +77,15 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
+
+    let framework = StandardFramework::new()
+    .configure(|c| c.prefix("/"))
+    // The `#[group]` (and similarly, `#[command]`) macro generates static instances
+    // containing any options you gave it. For instance, the group `name` and its `commands`.
+    // Their identifiers, names you can use to refer to these instances in code, are an
+    // all-uppercased version of the `name` with a `_GROUP` suffix appended at the end.
+    .group(&GENERAL_GROUP);
+
     // Create the database
     conexao_com_sqlite::criar_banco_de_dados().unwrap();
     // Configure the client with your Discord bot token in the environment.
@@ -74,6 +98,7 @@ async fn main() {
     // by Discord for bot users.
     let mut client = Client::builder(&token, intents)
         .event_handler(Handler)
+        .framework(framework)
         .await
         .expect("Err creating client");
 
