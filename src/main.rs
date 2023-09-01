@@ -3,10 +3,13 @@ use std::env;
 use serenity::async_trait;
 use serenity::model::channel::Message;
 use serenity::model::gateway::Ready;
-use serenity::model::prelude::Member;
+use serenity::model::prelude::{Member, Interaction, InteractionResponseType};
+use serenity::model::prelude::command::Command;
 use serenity::prelude::*;
 use serenity::framework::standard::macros::{command, group};
 use serenity::framework::standard::{CommandResult, StandardFramework};
+
+pub mod commands_slash;
 
 struct Handler;
 
@@ -64,14 +67,43 @@ impl EventHandler for Handler {
         };
     }
 
+    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+        if let Interaction::ApplicationCommand(command) = interaction {
+            println!("Received command interaction: {:#?}", command);
+
+            let content = match command.data.name.as_str() {
+                "hobbit" => commands_slash::hobbit::run(),
+                _ => "not implemented :(".to_string(),
+            };
+
+            if let Err(why) = command
+                .create_interaction_response(&ctx.http, |response| {
+                    response
+                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                        .interaction_response_data(|message| message.content(content))
+                })
+                .await
+            {
+                println!("Cannot respond to slash command: {}", why);
+            }
+        }
+    }
+
     // Set a handler to be called on the `ready` event. This is called when a
     // shard is booted, and a READY payload is sent by Discord. This payload
     // contains data like the current user's guild Ids, current user data,
     // private channels, and more.
     //
     // In this case, just print what the current user's username is.
-    async fn ready(&self, _: Context, ready: Ready) {
+    async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
+        
+        let guild_command = Command::create_global_application_command(&ctx.http, |command| {
+          commands_slash::hobbit::register(command)
+        })
+        .await;
+
+        println!("I created the following global slash command: {:#?}", guild_command);
     }
 }
 
