@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 rusqlite = { version = "0.29.0", features = ["bundled"] }
-serenity = {version = "0.11.6", default-features = false, features = ["client", "gateway", "rustls_backend", "model","framework","standard_framework","builder"]}
+serenity = {version = "0.11.6", default-features = false, features = ["utils","http","client", "gateway", "rustls_backend", "model","framework","standard_framework","builder","cache","voice"]}
 songbird = "0.3.2"
 tokio = {version = "1.32.0", features = ["macros", "rt-multi-thread"]}

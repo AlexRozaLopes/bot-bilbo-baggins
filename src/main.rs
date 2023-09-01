@@ -8,8 +8,11 @@ use serenity::model::prelude::command::Command;
 use serenity::prelude::*;
 use serenity::framework::standard::macros::{command, group};
 use serenity::framework::standard::{CommandResult, StandardFramework};
+use songbird::SerenityInit;
 
 pub mod commands_slash;
+pub mod voice_commands;
+use crate::voice_commands::join::JOIN_COMMAND; 
 
 struct Handler;
 
@@ -21,7 +24,7 @@ async fn about(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[group]
-#[commands(about)]
+#[commands(about,join)]
 struct General;
 
 
@@ -131,6 +134,7 @@ async fn main() {
     let mut client = Client::builder(&token, intents)
         .event_handler(Handler)
         .framework(framework)
+        .register_songbird() 
         .await
         .expect("Err creating client");
 
