@@ -13,6 +13,7 @@ use songbird::SerenityInit;
 pub mod commands_slash;
 pub mod voice_commands;
 use crate::voice_commands::join::JOIN_COMMAND; 
+use crate::voice_commands::exit::LEAVE_COMMAND;
 
 struct Handler;
 
@@ -24,7 +25,7 @@ async fn about(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[group]
-#[commands(about,join)]
+#[commands(about,join,leave)]
 struct General;
 
 
